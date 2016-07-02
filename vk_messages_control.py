@@ -1,30 +1,37 @@
 import vk_api
 import config
 
-def messagesFormating(messages):
+class Message:
+	def __init__(self,from_id,from_fname,from_lname,message_text):
+		self.from_id = from_id
+		self.from_fname = from_fname
+		self.from_lname = from_lname
+		self.message_text = message_text
+
+
+def messages_formatting(messages):
 
 	format_messages = list()
 
 	for key in messages.keys():
-		temp = messages[key]
-		temp['from_id'] = key
+		temp = Message(key, messages[key]['from_fname'], messages[key]['from_lname'], messages[key]['message_text'])	
 		format_messages.append(temp)
 
 	return format_messages
 
 
-def getUnreadMessages(session):
+def get_unread_messages(session):
 
 	unread_messages = dict()
 	messages = session.messages.get(count = 20)
 
 	for message in messages['items']:
 		if message['read_state'] == 0:
-			session.messages.markAsRead(message_ids = message['id'])
+			#session.messages.markAsRead(message_ids = message['id'])
 			users = session.users.get(user_ids = message['user_id'])
 			for user in users:
 				if user['id'] in unread_messages.keys():
-					unread_messages[user['id']]['message_text'] += '\n' + '\n' + message['body']
+					unread_messages[user['id']]['message_text'] += '\n\n' + message['body']
 				else:
 					temp = dict()
 					temp['from_fname'] = user['first_name']
@@ -32,10 +39,10 @@ def getUnreadMessages(session):
 					temp['message_text'] = message['body']
 					unread_messages[user['id']] = temp
 
-	return messagesFormating(unread_messages)
+	return messages_formatting(unread_messages)
 
 
-def main(): 
+def get_messages(): 
     vk_session = vk_api.VkApi(config.vk_login, config.vk_password)
 
     try:
@@ -45,4 +52,7 @@ def main():
         return
 
     vk = vk_session.get_api()
-    return getUnreadMessages(vk)
+    return get_unread_messages(vk)
+
+
+
